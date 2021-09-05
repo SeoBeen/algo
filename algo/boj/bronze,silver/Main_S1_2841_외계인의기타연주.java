@@ -5,6 +5,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Stack;
 import java.util.StringTokenizer;
+/*
+ * 1. 문제를 보고 생각난 아이디어
+ *   - 줄을 저장할 배열과 프렛을 저장할 2차원 배열같은것이 필요하다
+ * 2. 문제를 풀면서 바뀐 아이디어
+ *   - 입력으로 주어진 음의 프렛값과 해당줄의 현재 프렛값을 비교해야함   
+ * 3. 최종적으로 사용된 아이디어
+ *   - 프렛값이 들어오는 순서는 작은 수에서 큰수로 들어올것이기 때문에 이를 비교하기 위해서는
+ *     스택을 이용하면 쉽게 해결이 가능하다.
+ */
+
 
 public class Main_S1_2841_외계인의기타연주 {
 	private static int N,P;	// N : 음의 수, P : 프렛의 수
