@@ -32,10 +32,11 @@ public class Main_2567_싸이클 {
 		recursion(N);
 	}
 	private static int recursion(int num) {
-		System.out.println(num);
+//		System.out.println(num);
 		if(chk[num] == true) {
 //			제일 처음 N일때 들어간 cnt 빼주기 하지만 멈추는지점이 N일경우는 빼주지 않는다.
 			if(num != N) cnt--;
+			if(num == 0) cnt = 1;
 			System.out.println(cnt);
 			return 0;
 		}
@@ -43,5 +44,4 @@ public class Main_2567_싸이클 {
 		cnt++;
 		return recursion((num * N) % P);
 	}
-
 }
