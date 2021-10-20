@@ -3,7 +3,7 @@ package com.ssafy.swea;
 import java.util.Scanner;
 import java.util.Arrays;
 
-public class Solution_D2_1954_어서빈 {
+public class Solution_D2_1954_달팽이숫자 {
 	
 	public static void main(String[] args) {
 		
