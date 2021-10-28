@@ -1,4 +1,4 @@
-package study.boj.prepareExam;
+package study.boj.done;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
