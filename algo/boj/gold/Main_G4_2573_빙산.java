@@ -39,20 +39,26 @@ public class Main_G4_2573_빙산 {
 			// 1. 빙하 녹는다.
 			bfs();
 			
-			for(int[] c : map) {
-				System.out.println(Arrays.toString(c));
-			}
-			System.out.println("-----------------------");
+//			for(int[] c : map) {
+//				System.out.println(Arrays.toString(c));
+//			}
+//			System.out.println("-----------------------");
 			// 2. 빙하 덩어리들 개수 세어보기.
 			if(!list.isEmpty()) {				
 				cnt = 0;
 				boolean[][] visited = new boolean[N][M];
-				int[] now = list.peek();
-				visited[now[0]][now[1]] = true;
-				count(now[0],now[1],visited);
-				System.out.println("cnt : "+ cnt);
+				for(int i = 0; i <N; i++) {
+					for(int j = 0; j < M; j++) {
+						if(map[i][j] != 0 && !visited[i][j]) {
+							visited[i][j] = true;
+							cnt += count(i,j,visited);							
+						}
+					}
+				}
+//				System.out.println("cnt : "+ cnt);
 				if(cnt >= 2) {
 					System.out.println(ans);
+					break;
 				}
 			}
 		}
@@ -60,12 +66,7 @@ public class Main_G4_2573_빙산 {
 
 	}
 	
-	private static void count(int r, int c, boolean[][] visited) {
-		// 기저조건
-//		if(map[r][c] == 0) {
-//			cnt++;
-//			return;
-//		}
+	private static int count(int r, int c, boolean[][] visited) {
 		
 		for(int d = 0; d < 4; d++) {
 			int nr = r + dr[d];
@@ -74,11 +75,11 @@ public class Main_G4_2573_빙산 {
 			// 빙산이고, 			방문전이면
 			if(map[nr][nc]!=0 && !visited[nr][nc]) {
 				visited[nr][nc] = true;
-				count(nr,nc,visited);				
+				count(nr,nc,visited);
 			}
-		}
+		}	
 		
-		cnt++;
+		return 1;
 	}
 
 
