@@ -2,138 +2,177 @@ package samsung;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class Main_G2_19236_청소년상어 {
 
 	//							상, 좌상, 좌, 좌하, 하, 우하 ,우 우상
-	private static int[] dr = { -1,  -1,  0,    1,   1,  1,   0,  -1};
-	private static int[] dc = { 0,  -1,  -1,    -1,   0,  1,   1,  1};
-	private static int[][] map = new int[4][4];
-	private static int sum;
-	private static List<Fish> fishList;
-	private static Fish shark = new Fish();
-	private static class Fish implements Comparable<Fish>{
+	private static int[] dr = {-1, -1, 0, 1, 1, 1, 0, -1};
+	private static int[] dc = { 0, -1, -1, -1, 0, 1, 1, 1};
+	private static int res, N = 4;
+	
+	private static class Fish {
 		// 번호, 좌표값, 방향
-		int num, r, c, dir;
-		boolean isDead;
+		int r, c, dir;
 
-		public Fish(int r, int c, int num, int dir) {
+		public Fish(int r, int c, int dir) {
 			super();
-			this.num = num;
 			this.r = r;
 			this.c = c;
 			this.dir = dir;
-			this.isDead = false;
 		}
-
-		public Fish() {
-		}
-
-		@Override
-		public int compareTo(Fish o) {
-			return this.num - o.num;
-		}		
 	}
 	
 	public static void main(String[] args) throws Exception{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st;
-		fishList = new LinkedList<Fish>();
 		
-		for(int i = 0 ; i < 4; i++) {
+		int[][] map = new int[N][N];
+		// 물고기는 16마리
+		Fish[] fishes = new Fish[17];
+		
+		for(int i = 0; i < N; i++) {
 			st = new StringTokenizer(br.readLine()," ");
-			for(int j = 0 ; j < 4; j++) {
-				int number = Integer.parseInt(st.nextToken());
-				int d = Integer.parseInt(st.nextToken())-1;
-				map[i][j] = number;
-				// 처음에 바로 상어가 먹을것이기 때문에 0,0은 안넣어준다.
-				if(i == 0 && j == 0) {
-					shark.r = 0;
-					shark.c = 0;
-					shark.dir = d;
-					sum += map[0][0];
-					map[0][0] = 0;
-				}
-				//					좌표값, 숫자, 방향
-				fishList.add(new Fish(i,j,number,d));
-			}
-		}
-		
-		// 물고기들 번호순으로 정렬
-		Collections.sort(fishList);
-		Fish firstFish = fishList.get(map[0][0]);
-		firstFish.isDead = true;
-		// 물고기 이동
-		move();
-		// 상어 먹이사냥
-		eat();
-	} // main
-
-	private static boolean eat() {
-		int d = shark.dir;
-		
-		int nr = shark.r + dr[d];
-		int nc = shark.c + dc[d];
-		// 범위 벗어나거나   물고기가 없으면 이동불가
-		if(!isIn(nr,nc) || map[nr][nc] == -1) return false;
-		
-		// 이동 가능
-		Fish eatenFish = fishList.get(map[nr][nc]);
-		sum += map[nr][nc];
-		// 상어가 있던곳 빈칸 만들기
-		map[shark.r][shark.c] = -1;
-		// 상어 이동
-		shark.r = nr;
-		shark.c = nc;
-		shark.dir = eatenFish.dir;
-		eatenFish.isDead = true;
-		// 먹힘 표시
-		map[nr][nc] = -1;
-		
-		return true;
-	}
-
-	private static void move() {
-		
-		int size = fishList.size();
-		for(int idx = 0; idx < size; idx++) {
-			Fish currentFish = fishList.get(idx);
-			// 먹힌 물고기면 패스
-			if(currentFish.isDead) continue;
-			int r = currentFish.r;
-			int c = currentFish.c;
-			int dir = currentFish.dir;
 			
-			for(int d = 0; d < 8; d++) {
-				int nr = r + dr[(dir+d)%8]; 
-				int nc = c + dc[(dir+d)%8];
-				
-				// 범위를 벗어나거나 상어만나면 회전
-				if(!isIn(nr,nc) || map[nr][nc] == 0) continue;
-				
-				// 이동 가능
-				// 이동당할 물고기 번호
-				int tempFish = map[nr][nc];
-				// 이동 위치에 현재 물고기의 값을 넣고
-				map[nr][nc] = currentFish.num;
-				// 원래 나의 위치에 이동당한 물고기 값 넣기.
-				map[r][c] = tempFish;
-				currentFish.r = nr;
-				currentFish.c = nc;
-				currentFish.dir = (dir+d)%8;
-				
-				Fish moveFish = fishList.get(tempFish);
-				moveFish.r = r;
-				moveFish.c = r;
+			for(int j = 0; j < N; j++) {
+				int number = Integer.parseInt(st.nextToken());
+				int dir = Integer.parseInt(st.nextToken())-1;
+				map[i][j] = number;
+				fishes[number] = new Fish(i,j,dir);
 			}
 		}
+		
+		res = map[0][0];
+		// 상어정보 추가
+		Fish shark = new Fish(0,0, fishes[map[0][0]].dir);
+		// 먹힌 물고기 없애주기
+		fishes[map[0][0]] = null;
+		// 상어표시
+		map[0][0] = -1;
+		
+		moveAndEat(map, fishes, shark, res);
+		
+		System.out.println(res);
 	}
+		
+	private static void moveAndEat(int[][] map, Fish[] fishes, Fish shark, int sum) {
+		
+		// 재귀를 이용할것이기 때문에 temp 생성
+		// 맵 복사
+		int[][] tempMap = new int[N][N];
+		for(int i = 0 ; i < N; i++) {
+			for(int j = 0; j < N; j++) {
+				tempMap[i][j] = map[i][j];
+			}
+		}
+		// 상어 복사
+		Fish tempShark = new Fish(shark.r, shark.c, shark.dir);
+		
+		// 물고기 복사
+		Fish[] tempFishes = new Fish[17];
+		for(int i = 1; i <= 16; i++) {
+			if(fishes[i] == null) continue;
+			tempFishes[i] = new Fish(fishes[i].r, fishes[i].c, fishes[i].dir);
+		}
+		
+		
+		// 물고기 이동
+		for(int f = 1; f <= 16; f++) {
+			Fish now = tempFishes[f];
+			// 먹힌물고기면 패스
+			if(now == null) continue;
+			
+			int origDir = now.dir;
+			do {	
+				int nr = now.r + dr[now.dir];
+				int nc = now.c + dc[now.dir];
+				
+				// 범위 밖이거나   상어가 있으면 회전
+				if(nr < 0 || nr >=N || nc < 0 || nc >= N || tempMap[nr][nc] == -1) {
+					now.dir = (now.dir + 1) % 8;
+					continue;
+				}
+				
+				// 이동 가능하다
+				
+				// 이동 당할 물고기
+				Fish ftmp = tempFishes[tempMap[nr][nc]];
+				// 이미 먹힌 물고기가 아니면
+				
+				if(ftmp == null) {
+					// 내위치만 갱신
+					tempFishes[f] = new Fish(nr, nc, now.dir);
+				}
+				else {
+					tempFishes[tempMap[nr][nc]] = new Fish(now.r, now.c, ftmp.dir);
+					tempFishes[f] = new Fish(nr, nc, now.dir);
+				}
+				
+//				if(tempFish != null) {
+//					tempFishes[tempMap[nr][nc]] = new Fish(currentFish.r,currentFish.c, tempFish.dir);
+//				}
+//				tempFishes[idx] = new Fish(nr, nc, dir);
+				
+				// 이동당한 물고기를 현재 물고기 위치에 저장 
+				int nTemp = tempMap[nr][nc];
+				tempMap[nr][nc] = f;
+				// 이동할 위치에 현재 물고기 값 입력
+				tempMap[now.r][now.c] = nTemp;
+				
+				break;
+			} while(now.dir != origDir);
+		} // for : 물고기 이동
+		// 물고기 이동 끝
+			
+		// 상어 이동 시작			
+		for(int d = 1; d <= 3; d++) {
+			int nr = tempShark.r + dr[tempShark.dir] * d;
+			int nc = tempShark.c + dc[tempShark.dir] * d;
+			
+			// 범위넘어가면 정지
+//			if(!isIn(nr,nc)) break;
+			if(nr < 0 || nr >= N || nc < 0 || nc >= N) break;
+			
+			// 물고기가 없다 => 다음 위치로 이동
+			if(tempMap[nr][nc] == 0) continue;
+			
+			// 물고기 먹었다
+			// 먹힌 물고기 번호
+			int eatNum = tempMap[nr][nc];
+			// 먹힌 물고기 정보
+			Fish fish = tempFishes[tempMap[nr][nc]];
+			
+			
+			// 먹힌 물고기 삭제
+			tempFishes[tempMap[nr][nc]] = null;
+			
+			// 상어 정보 수정
+			tempShark = new Fish(fish.r, fish.c, fish.dir);
+			
+			// 상어 표시
+			tempMap[nr][nc] = -1;
+			
+			// 상어가 있던곳 이제 아무것도 없음 => 0
+			tempMap[shark.r][shark.c] = 0;
+			
+			moveAndEat(tempMap, tempFishes, tempShark, sum + eatNum);
+			// 되돌리기
+			// 상어가 있던곳 다시 표시
+			tempMap[shark.r][shark.c] = -1;			
+			// 상어가 물고기 먹은곳 물고기 재생
+			tempMap[nr][nc] = eatNum;
+			// 상어 정보 수정
+			tempShark = new Fish(shark.r, shark.c, shark.dir);
+			// 먹힌 물고기 살리기
+			tempFishes[tempMap[nr][nc]] = new Fish(fish.r, fish.c, fish.dir);
+		} // for : 상어 이동
+		
+		res = Math.max(res, sum);
+	} 
+	
 	private static boolean isIn(int r, int c) {
-		return r >= 0 && r < 4 && c >= 0 && c < 4;
+		return r >= 0 && r < N && c >= 0 && c < N;
 	}
 
 }
