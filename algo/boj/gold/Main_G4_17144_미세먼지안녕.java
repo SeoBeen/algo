@@ -1,160 +1,143 @@
-package com.ssafy.boj;
+package samsung;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 public class Main_G4_17144_미세먼지안녕 {
-	private static int R,C,T,cleanerR,ans;
 	private static int[][] map;
-	private static int[] dr = {1,-1,0,0};
-	private static int[] dc = {0,0,1,-1};
+	private static int[] dr = {-1,0,1,0};
+	private static int[] dc = {0,1,0,-1};
+	private static int R,C,T,ans,airCleaner; // 공기청정기의 아래쪽 담당
 	
-	private static class Dust {
-		int r, c, weight;
-
-		public Dust(int r, int c, int weight) {
-			super();
-			this.r = r;
-			this.c = c;
-			this.weight = weight;
-		}
-		
-	}
-	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = new StringTokenizer(br.readLine()," ");
 		R = Integer.parseInt(st.nextToken());
 		C = Integer.parseInt(st.nextToken());
 		T = Integer.parseInt(st.nextToken());
 		map = new int[R][C];
-		for(int i = 0; i<R; i++) {
+		for(int i = 0; i < R; i++) {
 			st = new StringTokenizer(br.readLine()," ");
-			for(int j = 0 ; j<C; j++) {
+			for(int j = 0; j < C; j++) {
 				map[i][j] = Integer.parseInt(st.nextToken());
-				if(map[i][j]== -1) cleanerR = i; 	// 공기청정기 행값 저장
-			}
-		}
-		
-		for(int tcase = 1; tcase <=T; tcase++) {
-			findDust();			
-			turnOn();
-		}
-		for(int i = 0; i<R; i++) {
-			for(int j = 0 ; j<C; j++) {
-				if(map[i][j] != -1) {
-					ans += map[i][j];
+				if(map[i][j] == -1) {
+					airCleaner = i;
 				}
 			}
 		}
-//		for(int[] c : map) {
-//			System.out.println(Arrays.toString(c));
-//		}
+		
+		process();
 		System.out.println(ans);
-	}// main
+	}
+
+	private static void process() {
+		
+		while(T > 0) {
+			// 미세먼지 확산
+			spread();
+			// 공기청정기 작동
+			work();
+			T--;
+		}
+		
+		for(int r = 0; r < R; r++) {
+			for(int c = 0; c < C; c++) {
+				if(map[r][c] == -1 || map[r][c] == 0) continue;
+				ans += map[r][c];
+			}
+		}
+	}
+
+	private static void work() {
+		// 위쪽부터 바람이 나온다.
+		int upSide = airCleaner-1;
+		// 하
+		for(int r = upSide-1; r > 0; r--) {
+			map[r][0] = map[r-1][0];
+		}		
+		// 좌
+		for(int c = 0; c +1 < C; c++) {
+			map[0][c] = map[0][c+1];
+		}
+		// 상
+		for(int r = 0; r < upSide; r++) {
+			map[r][C-1] = map[r+1][C-1]; 
+		}
+		// 우
+		for(int c = C-1; c > 1; c--) {
+			map[upSide][c] = map[upSide][c-1];
+		}
+		map[upSide][1] = 0;
+		
+		int lowerSide = airCleaner;
+		
+		// 상
+		for(int r = lowerSide+1; r + 1 < R; r++) {
+			map[r][0] = map[r+1][0];
+		}
+		// 좌
+		for(int c = 0; c + 1 < C; c++) {
+			map[R-1][c] = map[R-1][c+1];
+		}
+		// 하
+		for(int r = R-1; r > lowerSide; r--) {
+			map[r][C-1] = map[r-1][C-1];
+		}
+		// 우
+		for(int c = C-1; c > 1; c--) {
+			map[lowerSide][c] = map[lowerSide][c-1];
+		}
+		map[lowerSide][1] = 0;
+	}
+
+	private static void spread() {
+		// 임시 저장용 배열
+		int[][] temp = new int[R][C];
+		
+		for(int r = 0; r < R; r++) {
+			for(int c = 0; c < C; c++) {
+				// 비어있거나       공기청정기가 아니고 
+				if(map[r][c] != 0 && map[r][c] != -1) {
+					// 5보다 작으면 확산이 일어나지 않는다.
+					if(map[r][c] < 5) {
+						temp[r][c] += map[r][c];
+						continue;
+					}
+					
+					// 확산이 일어난다
+					int spreadCnt = 0;
+					int nowDust = map[r][c] / 5;
+					
+					for(int d = 0; d < 4; d++) {
+						int nr = r + dr[d];
+						int nc = c + dc[d];
+						
+						//범위 벗어나거나 공기청정기이면 패스
+						if(!isIn(nr,nc) || map[nr][nc] == -1) continue;
+						
+						// 확산이 일어난다.
+						spreadCnt++;
+						temp[nr][nc] += nowDust;
+					}
+					
+					temp[r][c] += map[r][c] - nowDust * spreadCnt;
+				}
+			}
+		}
+		
+		temp[airCleaner][0] = -1;
+		temp[airCleaner-1][0] = -1;
+		for(int i = 0; i < R; i++) {
+			for(int j = 0; j < C; j++) {
+				map[i][j] = temp[i][j];
+			}
+		}
+	}
 	
-	private static void turnOn() {
-//		위쪽 좌표
-		int topR = cleanerR -1;
-//		아래쪽 좌표
-		int bottomR = cleanerR;
-		
-//		공기 청정기 위쪽 열
-		for(int i = topR-1; i>0; i--) {
-			map[i][0] = map[i-1][0];
-		}
-//		맨 윗줄
-		for(int i = 0; i<C-1; i++) {
-			map[0][i] = map[0][i+1];
-		}
-//		위쪽 맨 오른쪽 열
-		for(int i = 0; i<topR; i++) {
-			map[i][C-1] = map[i+1][C-1];
-		}
-//		위쪽 공기청정기 행
-		for(int i = C-1; i>1; i--) {
-			map[topR][i] = map[topR][i-1];
-		}
-//		공기청정기에서 나온 바람
-		map[topR][1] = 0;
-		
-//		공기 청정기 아래쪽 열
-		for(int i = bottomR+1; i<R-1; i++) {
-			map[i][0] = map[i+1][0];
-		}
-//		맨 아랫줄
-		for(int i = 0; i<C-1; i++) {
-			map[R-1][i] = map[R-1][i+1];
-		}
-//		아랫쪽 맨 오른쪽 열
-		for(int i = R-1; i>bottomR; i--) {
-			map[i][C-1] = map[i-1][C-1];
-		}
-//		아래쪽 공기청정기 행
-		for(int i = C-1; i> 1; i--) {
-			map[bottomR][i] = map[bottomR][i-1];
-		}
-//		공기청정기에서 나온 바람
-		map[bottomR][1] = 0;		
-		
-	}
-
-	private static void findDust() {
-//		먼지 찾아서 위치 저장하기
-		LinkedList<Dust> dust = new LinkedList<Dust>();
-		for(int i = 0; i<R; i++) {
-			for(int j = 0; j<C; j++) {
-				if(map[i][j] != -1 && map[i][j] != 0) {
-//					먼지 위치 저장
-					dust.offer(new Dust(i,j,map[i][j]));
-				}
-			}
-		}
-//		먼지 확산
-		while(!dust.isEmpty()) {
-			Dust cur = dust.poll();
-//			확산되는 양은 /5 이고 소수점은 버리기 때문에 5보다 작을경우 확산 X
-			if(cur.weight < 5) continue;
-			int r = cur.r;
-			int c = cur.c;
-//			확산되는 양
-			int spreadDust = cur.weight/5;
-//			확산되는 방향의 개수
-			int wayCnt = 0;
-			for(int d = 0; d<dr.length; d++) {
-				int nr = r + dr[d];
-				int nc = c + dc[d];
-//					경계 안이고		공기청정기가 아니면
-				if(isIn(nr,nc) && map[nr][nc] != -1) {
-//					확산이 일어남
-					map[nr][nc] += spreadDust;
-//					확산 방향 개수 증가
-					wayCnt++;
-				}
-			}
-//			남은 미세먼지 양
-			map[r][c] -= spreadDust * wayCnt;
-		}
-	}
-
 	private static boolean isIn(int r, int c) {
 		return r >= 0 && r < R && c >= 0 && c < C;
 	}
-}// end class
 
-/*
-7 6 1
-1 2 3 4 5 6
-6 5 4 3 2 1
--1 2 3 4 5 6
--1 6 5 4 3 2
-1 2 3 4 5 6
-6 5 4 3 2 1
-1 2 3 4 5 6
-
-ans : 138
-*/
+}
