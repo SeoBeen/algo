@@ -119,9 +119,23 @@ public class Main_2022상반기_오전1번 {
 	}
 
 	private static void killerMove() {
+		
+//		int[][] test = new int[n][n];
+//		for(int r = 0; r < n; r++) {
+//			for(int c = 0; c < n; c++) {
+//				test[r][c] = 0;
+//			}
+//		}
+		
 		int r = killer.r;
 		int c = killer.c;
 		int d = killer.dir;
+		
+//		test[r][c] = 1;
+//		System.out.println("----------- 구분선 ----------------");
+//		for(int[] tes : test) {
+//			System.out.println(Arrays.toString(tes));
+//		}
 		
 		// 해당 방향으로 이동
 		int nr = r + kDr[d];
@@ -138,8 +152,14 @@ public class Main_2022상반기_오전1번 {
 			// 만약 2번만큼 사이즈를 다 돌았으면
 			if(killer.two == 0) {
 				killer.two = 2;
-				// 다음 사이즈 증가
-				killer.size++;				
+				if(killer.isReverse) {
+					// 역방향이면 사이즈 감소
+					killer.size--;
+				}
+				else {
+					// 다음 사이즈 증가
+					killer.size++;			
+				}
 			}			
 			// 방향 전환
 			if(killer.isReverse) { 					// 역방향이면
@@ -209,7 +229,7 @@ public class Main_2022상반기_오전1번 {
 						// 방향 틀어주기
 						runnerSDir = (runnerSDir+1) % 2;
 						
-						// 바뀐 방향으로 1칸 갈때 킬러가 있는지 확인
+						// 바뀐 방향으로 1칸 이동
 						nr = runnerR + rDr[runnerDir][runnerSDir];
 						nc = runnerC + rDc[runnerDir][runnerSDir];
 						
